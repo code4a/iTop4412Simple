@@ -231,11 +231,11 @@ JNIEXPORT jint JNICALL Java_com_jiangyt_library_libitop_UvcCamera_yuvtorgb
     AVFrame *rpicture = NULL;
     AVFrame *ypicture = NULL;
     struct SwsContext *swsctx = NULL;
-    rpicture = avcodec_alloc_frame();
-    ypicture = avcodec_alloc_frame();
-    avpicture_fill((AVPicture *) rpicture, (uint8_t *) rdata, PIX_FMT_RGB565, dwidth, dheight);
+    rpicture = av_frame_alloc();
+    ypicture = av_frame_alloc();
+    avpicture_fill((AVPicture *) rpicture, (uint8_t *) rdata, AV_PIX_FMT_RGB565, dwidth, dheight);
     avpicture_fill((AVPicture *) ypicture, (uint8_t *) ydata, AV_PIX_FMT_YUYV422, mwidth, mheight);
-    swsctx = sws_getContext(mwidth, mheight, AV_PIX_FMT_YUYV422, dwidth, dheight, PIX_FMT_RGB565,
+    swsctx = sws_getContext(mwidth, mheight, AV_PIX_FMT_YUYV422, dwidth, dheight, AV_PIX_FMT_RGB565,
                             SWS_BICUBIC, NULL, NULL, NULL);
     sws_scale(swsctx, (const uint8_t *const *) ypicture->data, ypicture->linesize, 0, mheight,
               rpicture->data, rpicture->linesize);
@@ -334,8 +334,8 @@ JNIEXPORT jint JNICALL Java_com_jiangyt_library_libitop_UvcCamera_videostart
     AVFrame *yuv420pframe = NULL;
     AVFrame *yuv422frame = NULL;
     struct SwsContext *swsctx = NULL;
-    yuv420pframe = avcodec_alloc_frame();
-    yuv422frame = avcodec_alloc_frame();
+    yuv420pframe = av_frame_alloc();
+    yuv422frame = av_frame_alloc();
     avpicture_fill((AVPicture *) yuv420pframe, (uint8_t *) yuv420buf, AV_PIX_FMT_YUV420P, mwidth,
                    mheight);
     avpicture_fill((AVPicture *) yuv422frame, (uint8_t *) ydata, AV_PIX_FMT_YUYV422, mwidth,
