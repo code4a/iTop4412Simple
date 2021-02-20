@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">iTop4412Simple</string>
+    <string name="play">Play</string>
+    <string name="start_publish">开始推流</string>
+    <string name="stop_publish">停止推流</string>
+    <string name="start_live">开始直播</string>
+    <string name="stop_live">停止直播</string>
+    <string name="go_to_rtmp_page">go to rtmp page</string>
+</resources>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ItopModuleActivity">
+
+    <Button
+        android:id="@+id/relay_open"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="打开继电器"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/relay_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="关闭继电器"
+        app:layout_constraintLeft_toRightOf="@id/relay_open"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/rfid_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/relay_open" />
+
+    <Button
+        android:id="@+id/rfid_send"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="清空数据"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rfid_edit" />
+
+    <Button
+        android:id="@+id/rfid_recv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="接收数据"
+        app:layout_constraintLeft_toRightOf="@id/rfid_send"
+        app:layout_constraintTop_toTopOf="@id/rfid_send" />
+
+    <EditText
+        android:id="@+id/motor_step"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:hint="请输入步数"
+        android:inputType="number"
+        app:layout_constraintLeft_toLeftOf="@id/rfid_send"
+        app:layout_constraintTop_toBottomOf="@id/rfid_send" />
+
+    <EditText
+        android:id="@+id/motor_speed"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:hint="请输入速度"
+        android:inputType="number"
+        app:layout_constraintLeft_toRightOf="@id/motor_step"
+        app:layout_constraintTop_toTopOf="@id/motor_step" />
+
+    <Button
+        android:id="@+id/motor_forward"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="电机正转"
+        app:layout_constraintLeft_toLeftOf="@id/motor_step"
+        app:layout_constraintTop_toBottomOf="@id/motor_step" />
+
+    <Button
+        android:id="@+id/motor_reverse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="电机倒转"
+        app:layout_constraintLeft_toRightOf="@id/motor_forward"
+        app:layout_constraintTop_toTopOf="@id/motor_forward" />
+
+    <ImageView
+        android:id="@+id/mimg"
+        android:layout_width="320dp"
+        android:layout_height="240dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/motor_reverse" />
+
+    <Button
+        android:id="@+id/mcap"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:text="Cap"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/mimg" />
+
+    <Button
+        android:id="@+id/mvideo"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:text="Video"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/mcap" />
+
+    <Button
+        android:id="@+id/dc_motor_forward"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="M1直流电机正转"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <Button
+        android:id="@+id/dc_motor_stop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="M1直流电机停止"
+        app:layout_constraintLeft_toRightOf="@id/dc_motor_forward"
+        app:layout_constraintTop_toTopOf="@id/dc_motor_forward" />
+
+    <Button
+        android:id="@+id/dc_motor_reverse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="M1直流电机反转"
+        app:layout_constraintLeft_toRightOf="@id/dc_motor_stop"
+        app:layout_constraintTop_toTopOf="@id/dc_motor_stop" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

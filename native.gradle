@@ -1,0 +1,51 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+        // 在 defaultConfig 中设置输入和输出的so库类型（abiFilters 最好上下保持一致，可以试着设置不一样，对比 apk文件libs下so数量的差异效果）
+        // ①输入的平台必须包含输出的平台
+        // ②如果不设置输入，默认会将本地的所有so库都加载到apk.
+        // ③如果不设置输出，输出平台默认和输入平台相同
+        // ④abiFilters 如果都不设置，默认就是全平台
+        // ⑤设置了CPU平台，如果没有对应平台的文件夹编译就会报错，如果不设置，就必须每个平台的要有。
+        externalNativeBuild {
+            cmake {
+                cppFlags "-frtti -fexceptions"
+                //输出的so库的类型
+                abiFilters 'armeabi-v7a', 'arm64-v8a'
+            }
+        }
+        ndk {
+            //选择要加载的对应cpu类型的.so库。
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+            // 还可以添加 'x86', 'x86_64', 'mips', 'mips64'
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.10.2"
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}

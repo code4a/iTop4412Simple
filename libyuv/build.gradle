@@ -1,0 +1,6 @@
+apply from: "$rootDir/native.gradle"
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+
+}
