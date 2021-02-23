@@ -48,10 +48,10 @@ public class ItopModuleActivity extends AppCompatActivity implements View.OnClic
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_itop_module);
         //initItopRelay();
-        initItopRfid();
-        initItopStepMotor();
+//        initItopRfid();
+//        initItopStepMotor();
         initItopUvc();
-        initItopL9110s();
+//        initItopL9110s();
     
     }
 

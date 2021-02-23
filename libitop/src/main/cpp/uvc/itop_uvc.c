@@ -35,8 +35,35 @@ struct fimc_buffer {
     size_t length;
 };
 
+/******
+ * V4L2(Video For Linux Two) 是内核提供给应用程序访问音、视频驱动的统一接口。V4L2 的相关定义包含在头文件<linux/videodev2.h> 中.
+ * ******/
+
 static int fd = -1;
 struct fimc_buffer *buffers = NULL;
+
+/**
+ * struct v4l2_buffer
+ * {
+ *     u32 index;//buffer 序号
+ *     enum v4l2_buf_type type; //buffer 类型
+ *     u32 byteused;//buffer 中已使用的字节数
+ *     u32 flags;// 区分是MMAP 还是USERPTR
+ *     enum v4l2_field field;
+ *     struct timeval timestamp; // 获取第一个字节时的系统时间
+ *     struct v4l2_timecode timecode;
+ *     u32 sequence;// 队列中的序号
+ *     enum v4l2_memory memory; //IO 方式，被应用程序设置
+ *     union m
+ *     {
+ *         u32 offset;// 缓冲帧地址，只对MMAP 有效
+ *         unsignedlong userptr;
+ *     };
+ *     u32 length;// 缓冲帧长度
+ *     u32 input;
+ *     u32 reserved;
+ * };
+ */
 struct v4l2_buffer v4l2_buf;
 static int bufnum = 1;
 static int mwidth, mheight;
@@ -68,23 +95,11 @@ JNIEXPORT jint JNICALL Java_com_jiangyt_library_libitop_UvcCamera_open
         case 3:
             devname = "/dev/video3";
             break;
-        case 11:
-            devname = "/dev/video11";
-            break;
-        case 12:
-            devname = "/dev/video12";
-            break;
-        case 16:
-            devname = "/dev/video16";
-            break;
-        case 20:
-            devname = "/dev/video20";
-            break;
         default:
             devname = "/dev/video4";
             break;
     }
-    devname = "/dev/video3";
+    // 打开设备(fcntl.h) uvc摄像头，插入后对应生成"/dev/video4"
     fd = open(devname, O_RDWR);
 
     if (fd < 0)
@@ -104,57 +119,130 @@ JNIEXPORT jint JNICALL Java_com_jiangyt_library_libitop_UvcCamera_init
     bufnum = numbuf;
     mwidth = width;
     mheight = height;
+    /**
+     * 用来设置摄像头的视频格式、帧格式等
+     * 在设置这个参数时应先填 好 v4l2_format 的各个域，如
+     * type（传输流类型），
+     * fmt.pix.width(宽)，
+     * fmt.pix.heigth(高)，
+     * fmt.pix.field(采样区域，如隔行采样)，
+     * fmt.pix.pixelformat(采样类型，如 YUV4:2:2)
+     * ，然后通过 VIDIO_S_FMT 操作命令设置视频捕捉格式
+     *
+     * v4l2_buf_type type; // 帧类型，应用程序设置
+     * struct v4l2_pix_format pix; // 视频设备使用
+     */
     struct v4l2_format fmt;
+    /**
+     * 获取设备属性
+     * u8 driver[16]; // 驱动名字
+     * u8 card[32]; // 设备名字
+     * u8 bus_info[32]; // 设备在系统中的位置
+     * u32 version;// 驱动版本号
+     * u32 capabilities;// 设备支持的操作
+     * u32 device_caps; //
+     * u32 reserved[4]; // 保留字段
+     */
     struct v4l2_capability cap;
 
+    // 查询设备属性 VIDIOC_QUERYCAP
     ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);
     if (ret < 0) {
         LOGE("%d :VIDIOC_QUERYCAP failed\n", __LINE__);
         return -1;
     }
+    //printf("Driver Name:%s\nCard Name:%s\nBus info:%s\nDriver Version:%u.%u.%u\n",cap.driver,cap.card,cap.bus_info,cap.capabilities);
+    // capabilities 常用值:
+    // V4L2_CAP_VIDEO_CAPTURE // 是否支持图像获取
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
         LOGE("%d : no capture devices\n", __LINE__);
         return -1;
     }
 
+    // 将某一块内存中的内容全部设置为指定的值， 这个函数通常为新申请的内存做初始化工作。
     memset(&fmt, 0, sizeof(fmt));
+    // 设置传输流类型
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    // 设置采样类型
     fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
     fmt.fmt.pix.width = width;
     fmt.fmt.pix.height = height;
+    // 设置当前格式为：视频捕捉格式
     if (ioctl(fd, VIDIOC_S_FMT, &fmt) < 0) {
         LOGE("++++%d : set format failed\n", __LINE__);
         return -1;
     }
 
+    /**
+     * u32 count;// 缓冲区内缓冲帧的数目
+     * enum v4l2_buf_type type; // 缓冲帧数据格式
+     * enum v4l2_memory memory; // 区别是内存映射还是用户指针方式
+     *                          // V4L2_MEMORY_MMAP, V4L2_MEMORY_USERPTR
+     * u32 reserved[2];
+     */
     struct v4l2_requestbuffers req;
     req.count = numbuf;
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
 
+    //ioctl是设备驱动程序中对设备的I/O通道进行管理的函数。所谓对I/O通道进行管理，就是对设备的一些特性进行控制
+    /**
+     * fd open 函数返回的文件标识符
+     * request 用户程序对设备的控制命令
+     * 后面参数，是补充参数，一般最多一个，这个参数的有无和cmd的意义相关。
+     */
     ret = ioctl(fd, VIDIOC_REQBUFS, &req);
     if (ret < 0) {
         LOGE("++++%d : VIDIOC_REQBUFS failed\n", __LINE__);
         return -1;
     }
 
+    /**
+     * 分配所需的内存空间，并返回一个指向它的指针，指向已分配的内存
+     * item_count -- 要被分配的元素个数。
+     * item_size -- 元素的大小。
+     */
     buffers = calloc(req.count, sizeof(*buffers));
     if (!buffers) {
         LOGE ("++++%d Out of memory\n", __LINE__);
         return -1;
     }
 
+    // 初始化v4l2 buffer
     for (i = 0; i < bufnum; ++i) {
         memset(&v4l2_buf, 0, sizeof(v4l2_buf));
         v4l2_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         v4l2_buf.memory = V4L2_MEMORY_MMAP;
         v4l2_buf.index = i;
+        // i 的缓冲区，得到其起始物理地址和大小
         ret = ioctl(fd, VIDIOC_QUERYBUF, &v4l2_buf);
         if (ret < 0) {
             LOGE("+++%d : VIDIOC_QUERYBUF failed\n", __LINE__);
             return -1;
         }
         buffers[i].length = v4l2_buf.length;
+
+        /**
+         * mmap将一个文件或者其它对象映射进内存
+         * void* mmap(void* start,size_t length,int prot,int flags,int fd,off_t offset);
+         * start：映射区的开始地址，设置为0时表示由系统决定映射区的起始地址。
+         * length：映射区的长度。//长度单位是 以字节为单位，不足一内存页按一内存页处理
+         * prot：期望的内存保护标志，不能与文件的打开模式冲突。是以下的某个值，可以通过or运算合理地组合在一起
+         *                                                  PROT_EXEC //页内容可以被执行
+         *                                                  PROT_READ //页内容可以被读取
+         *                                                  PROT_WRITE //页可以被写入
+         *                                                  PROT_NONE //页不可访问
+         * flags：指定映射对象的类型，映射选项和映射页是否可以共享。它的值可以是一个或者多个以下位的组合体
+         *                                                  MAP_FIXED //使用指定的映射起始地址，
+         *                                                  如果由start和len参数指定的内存区重叠于现存的映射空间，
+         *                                                  重叠部分将会被丢弃。如果指定的起始地址不可用，操作将会失败。
+         *                                                  并且起始地址必须落在页的边界上。
+         *                                                  MAP_SHARED //与其它所有映射这个对象的进程共享映射空间。对共享区的写入，
+         *                                                  相当于输出到文件。直到msync()或者munmap()被调用，文件实际上不会被更新。
+         *
+         * fd：有效的文件描述词。一般是由open()函数返回，其值也可以设置为-1，此时需要指定flags参数中的MAP_ANON,表明进行的是匿名映射。
+         * offset：被映射对象内容的起点。
+         */
         if ((buffers[i].start = (char *) mmap(0, v4l2_buf.length,
                                               PROT_READ | PROT_WRITE, MAP_SHARED,
                                               fd, v4l2_buf.m.offset)) < 0) {
@@ -175,17 +263,27 @@ JNIEXPORT jint JNICALL Java_com_jiangyt_library_libitop_UvcCamera_streamon
     int i;
     int ret;
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    // 把所需缓冲帧放入队列，并启动数据流
     for (i = 0; i < bufnum; ++i) {
         memset(&v4l2_buf, 0, sizeof(v4l2_buf));
         v4l2_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         v4l2_buf.memory = V4L2_MEMORY_MMAP;
         v4l2_buf.index = i;
+        /**
+         * 把缓冲帧放入缓冲队列
+         *  VIDIOC_QBUF// 把帧放入队列
+         *  VIDIOC_DQBUF// 从队列中取出帧
+         */
         ret = ioctl(fd, VIDIOC_QBUF, &v4l2_buf);
         if (ret < 0) {
             LOGE("%d : VIDIOC_QBUF failed\n", __LINE__);
             return ret;
         }
     }
+    /**
+     * 启动 或 停止数据流 VIDIOC_STREAMON， VIDIOC_STREAMOFF　　
+     * argp 为流类型指针，如V4L2_BUF_TYPE_VIDEO_CAPTURE.
+     */
     ret = ioctl(fd, VIDIOC_STREAMON, &type);
     if (ret < 0) {
         LOGE("%d : VIDIOC_STREAMON failed\n", __LINE__);
@@ -382,6 +480,7 @@ JNIEXPORT jint JNICALL Java_com_jiangyt_library_libitop_UvcCamera_streamoff
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     int ret;
 
+    // 停止数据流
     ret = ioctl(fd, VIDIOC_STREAMOFF, &type);
     if (ret < 0) {
         LOGE("%s : VIDIOC_STREAMOFF failed\n", __func__);
@@ -408,6 +507,7 @@ JNIEXPORT jint JNICALL Java_com_jiangyt_library_libitop_UvcCamera_release
     }
 
     for (i = 0; i < bufnum; i++) {
+        // 断开映射
         ret = munmap(buffers[i].start, buffers[i].length);
         if (ret < 0) {
             LOGE("%s : munmap failed\n", __func__);
