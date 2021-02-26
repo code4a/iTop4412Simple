@@ -18,3 +18,23 @@
 1. 平面格式(planar format)：分别连续存储YUV分量 YYY UUU VVV
 2. 打包格式(packed format)：每个像素点YUV是连续交错存储 YUV YUV
 
+YUY2, YUYV, YUV422  这三个都是YUY2的别称，ffmpeg定义AV_PIX_FMT_YUYV422。
+
+    Y U Y V Y U Y V
+    Y U Y V Y U Y V
+    Y U Y V Y U Y V
+    Y U Y V Y U Y V
+    Y U Y V Y U Y V
+    Y U Y V Y U Y V
+    Y U Y V Y U Y V
+
+
+I420, IYUV, YUV420P, YU12， 前面这几个都是I420的名字，其中YUV420P又是几个格式的统称，特定环境下就是I420，ffmpeg定义AV_PIX_FMT_YUV420P。
+
+    Y Y Y Y Y Y Y Y
+    Y Y Y Y Y Y Y Y
+    Y Y Y Y Y Y Y Y
+    Y Y Y Y Y Y Y Y
+    U U U U U U U U
+    V V V V V V V V
+

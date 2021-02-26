@@ -20,4 +20,11 @@
         android:enabled="false"
         android:text="停止推流H.264" />
 
+    <ImageView
+        android:id="@+id/mimg"
+        android:layout_width="320dp"
+        android:layout_height="240dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_encode_mp4_stop" />
+
 </LinearLayout>

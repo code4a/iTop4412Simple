@@ -5,14 +5,17 @@
 
 #include "native_publish.h"
 #include "h264_publish.h"
+#include "ffmpeg_convert.h"
+#include "logger.h"
 
 /**
  * 动态注册
  */
 JNINativeMethod methods[] = {
-        {"captureFrame", "()V",                     (void *) captureFrame},
-        {"startPublish", "(Ljava/lang/String;II)V", (void *) startPublish},
-        {"stopPublish",  "()V",                     (void *) stopPublish}
+        {"setCallback",  "(Lcom/jiangyt/library/ffmpeg/FrameCallback;)I", (int *) setCallback},
+        {"captureFrame", "()V",                                           (void *) captureFrame},
+        {"startPublish", "(Ljava/lang/String;II)V",                       (void *) startPublish},
+        {"stopPublish",  "()V",                                           (void *) stopPublish}
 };
 
 /**
@@ -46,7 +49,50 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     return JNI_VERSION_1_6;
 }
 
+jobject frameCallback = NULL;
+jclass cls = NULL;
+jmethodID mid = NULL;
 VideoPublisher *videoPublisher = NULL;
+FFmpegConvert *fmpegConvert = NULL;
+
+int callback(JNIEnv *env, uint8_t *rgbBuf, uint8_t *yuvBuf) {
+    if (frameCallback == NULL) {
+        return -3;
+    }
+    if (mid == NULL) {
+        return -2;
+    }
+    if (cls == NULL) {
+        return -1;
+    }
+    jbyteArray rgb = env->NewByteArray(sizeof(rgbBuf));
+    env->SetByteArrayRegion(rgb, 0, sizeof(rgbBuf), (jbyte *) rgbBuf);
+    jbyteArray yuv = env->NewByteArray(sizeof(yuvBuf));
+    env->SetByteArrayRegion(yuv, 0, sizeof(yuvBuf), (jbyte *) yuvBuf);
+    env->CallVoidMethod(frameCallback, mid, rgb, yuv);
+    env->DeleteLocalRef(rgb);
+    env->DeleteLocalRef(yuv);
+    return 0;
+}
+
+int setCallback(JNIEnv *env, jobject instance, jobject frameCp) {
+    // 转换为全局变量
+    frameCallback = env->NewGlobalRef(frameCp);
+    if (frameCallback == NULL) {
+        return -3;
+    }
+    cls = env->GetObjectClass(frameCallback);
+    if (cls == NULL) {
+        return -1;
+    }
+    mid = env->GetMethodID(cls, "frameCallback", "([B[B)V");
+    if (mid == NULL) {
+        return -2;
+    }
+    env->CallVoidMethod(frameCallback, mid, (jbyteArray) nullptr, (jbyteArray) nullptr);
+    LOGE("set callback sucess");
+    return 0;
+}
 
 /**
  * 编码开始
@@ -58,9 +104,12 @@ VideoPublisher *videoPublisher = NULL;
  */
 void startPublish(JNIEnv *env, jobject obj, jstring jmp4Path, jint width, jint height) {
     const char *mp4Path = env->GetStringUTFChars(jmp4Path, NULL);
-
     if (videoPublisher == NULL) {
         videoPublisher = new H264Publisher();
+    }
+    if (fmpegConvert == NULL) {
+        fmpegConvert = new FFmpegConvert();
+        fmpegConvert->init(width, height);
     }
     videoPublisher->InitPublish(mp4Path, width, height);
     videoPublisher->StartPublish();
@@ -92,6 +141,10 @@ void captureFrame(JNIEnv *env, jobject obj) {
     while (NULL != videoPublisher && videoPublisher->isTransform()) {
         if (videoPublisher->InitUvcSuccess()) {
             videoPublisher->ToYuv420p();
+            uint8_t *yuvData = videoPublisher->GetYuvBuf();
+            int ret = callback(env, fmpegConvert->YUV2RGB(yuvData),
+                               fmpegConvert->YUYV2YUV420(yuvData));
+            LOGE("callback ret : %d", ret);
         } else {
             videoPublisher->EncodeBuffer(NULL);
         }

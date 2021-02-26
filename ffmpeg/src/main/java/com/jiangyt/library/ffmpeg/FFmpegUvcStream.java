@@ -14,6 +14,8 @@ public class FFmpegUvcStream {
         System.loadLibrary("ffmpeg_uvc_stream");
     }
 
+    public native int setCallback(FrameCallback frameCallback);
+
     public native void startPublish(String stream, int width, int height);
 
     public native void stopPublish();

@@ -5,6 +5,8 @@
 #ifndef ITOP4412SIMPLE_VIDEO_PUBLISH_H
 #define ITOP4412SIMPLE_VIDEO_PUBLISH_H
 
+#include <cstdint>
+
 class VideoPublisher {
 
 protected:
@@ -18,6 +20,8 @@ public:
     virtual void StartPublish() = 0;
 
     virtual void EncodeBuffer(unsigned char *nv21Buffer) = 0;
+
+    virtual uint8_t *GetYuvBuf() = 0;
 
     virtual void ToYuv420p() = 0;
 

@@ -143,13 +143,13 @@ void H264Publisher::StartPublish() {
     pFrame->format = pCodecCtx->pix_fmt;
     int bufferSize = av_image_get_buffer_size(pCodecCtx->pix_fmt, pCodecCtx->width,
                                               pCodecCtx->height, 1);
-//    int bufferSize = width * height * 2;
+    LOGE("YUV420P bufferSize: %d", bufferSize);
     pFrameBuffer = (uint8_t *) av_malloc(bufferSize);
     av_image_fill_arrays(pFrame->data, pFrame->linesize, pFrameBuffer, pCodecCtx->pix_fmt,
                          pCodecCtx->width, pCodecCtx->height, 1);
 
     //创建已编码帧
-    av_new_packet(&avPacket, bufferSize);
+    av_new_packet(&avPacket, bufferSize * 3);
 
     int ret = this->uvcCamera->initCamera(width, height, 4);
     if (ret < 0) {
@@ -170,16 +170,20 @@ bool H264Publisher::InitUvcSuccess() {
 }
 
 int H264Publisher::InitYuyv422(int width, int height) {
-    yuyv422frame = av_frame_alloc();
-    int yuvBs = av_image_get_buffer_size(AV_PIX_FMT_YUYV422, width, height, 1);
-//    int yuvBs = width * height * 2;
+//    yuyv422frame = av_frame_alloc();
+//    int yuvBs = av_image_get_buffer_size(AV_PIX_FMT_YUYV422, width, height, 1);
+    int yuvBs = width * height * 2;
+    LOGE("YUV422 bufferSize: %d", yuvBs);
     yuyv422buf = (uint8_t *) av_malloc(yuvBs);
-    av_image_fill_arrays(yuyv422frame->data, yuyv422frame->linesize, yuyv422buf,
-                         AV_PIX_FMT_YUYV422, width, height, 1);
-
-    sws_ctx = sws_getContext(width, height, AV_PIX_FMT_YUYV422, width, height,
-                             AV_PIX_FMT_YUV420P, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+//    av_image_fill_arrays(yuyv422frame->data, yuyv422frame->linesize, yuyv422buf,
+//                         AV_PIX_FMT_YUYV422, width, height, 1);
+//    sws_ctx = sws_getContext(width, height, AV_PIX_FMT_YUYV422, width, height,
+//                             AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);
     return 0;
+}
+
+uint8_t *H264Publisher::GetYuvBuf() {
+    return yuyv422buf;
 }
 
 void H264Publisher::ToYuv420p() {
@@ -190,14 +194,11 @@ void H264Publisher::ToYuv420p() {
     */
     int fi = this->uvcCamera->dqbuf(yuyv422buf);
 
-//    uint8_t *i420_y = pFrameBuffer;
-//    uint8_t *i420_u = pFrameBuffer + width * height;
-//    uint8_t *i420_v = pFrameBuffer + width * height + width * height / 4;
-
-
+    // 方法1
 //    sws_scale(sws_ctx, (const uint8_t *const *) yuyv422frame->data, yuyv422frame->linesize, 0,
 //              height,
 //              pFrame->data, pFrame->linesize);
+    // 方式2
 //    uint8_t *i420_y = pFrameBuffer;
 //    uint8_t *i420_u = pFrameBuffer + width * height;
 //    uint8_t *i420_v = pFrameBuffer + width * height * 5 / 4;
@@ -214,6 +215,10 @@ void H264Publisher::ToYuv420p() {
 //                       width,
 //                       height);
 
+    // 方式3
+//    uint8_t *i420_y = pFrameBuffer;
+//    uint8_t *i420_u = pFrameBuffer + width * height;
+//    uint8_t *i420_v = pFrameBuffer + width * height + width * height / 4;
 //    unsigned int i, j;
 ////    unsigned int base_h;
 ////    unsigned int  is_u = 1;
@@ -245,10 +250,22 @@ void H264Publisher::ToYuv420p() {
 //        }
 //    }
 
+    // 方式4
+    uint8_t *i420_y = pFrameBuffer;
+    uint8_t *i420_u = i420_y + width * height;
+    uint8_t *i420_v = i420_u + width * height / 4;
+    // yuy2转i420
+//    int aligned_src_width = (width + 1) & ~1;
+    libyuv::YUY2ToI420(yuyv422buf, width * 2,
+                       i420_y, width,
+                       i420_u, width / 2,
+                       i420_v, width / 2,
+                       width, height);
+    pFrame->data[0] = i420_y;
+    pFrame->data[1] = i420_u;
+    pFrame->data[2] = i420_v;
 
-//    pFrame->data[0] = i420_y;
-//    pFrame->data[1] = i420_u;
-//    pFrame->data[2] = i420_v;
+
     //编码H.264
     EncodeFrame(pCodecCtx, pFrame, &avPacket);
     this->uvcCamera->qbuf(fi);

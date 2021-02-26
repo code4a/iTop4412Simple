@@ -1,19 +1,32 @@
 package com.jiangyt.simple.itop4412;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.jiangyt.library.ffmpeg.FFmpegUvcStream;
+import com.jiangyt.library.ffmpeg.FrameCallback;
+
+import java.nio.ByteBuffer;
 
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class FFmpegUvcStreamActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Button mBtnEncodeStartMP4, mBtnEncodeStopMP4;
+    private ImageView mImag;
+    private Bitmap bitmap;
     FFmpegUvcStream uvcStream;
+    private int width = 320;
+    private int height = 240;
+    private int dwidth = 640;
+    private int dheight = 480;
+    private byte[] mout;
+    private ByteBuffer Imagbuf;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +41,23 @@ public class FFmpegUvcStreamActivity extends AppCompatActivity implements View.O
         mBtnEncodeStartMP4.setOnClickListener(this);
         mBtnEncodeStopMP4 = findViewById(R.id.btn_encode_mp4_stop);
         mBtnEncodeStopMP4.setOnClickListener(this);
+        mImag = findViewById(R.id.mimg);
+        bitmap = Bitmap.createBitmap(dwidth, dheight, Bitmap.Config.RGB_565);
+        mout = new byte[dwidth * dheight * 2];
+        Imagbuf = ByteBuffer.wrap(mout);
+        uvcStream.setCallback(new FrameCallback() {
+            @Override
+            public void frameCallback(byte[] rgbBuf, byte[] yuvBuf) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        bitmap.copyPixelsFromBuffer(Imagbuf);
+                        mImag.setImageBitmap(bitmap);
+                        Imagbuf.clear();
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -47,7 +77,12 @@ public class FFmpegUvcStreamActivity extends AppCompatActivity implements View.O
             case R.id.btn_encode_mp4_stop:
                 mBtnEncodeStartMP4.setEnabled(true);
                 mBtnEncodeStopMP4.setEnabled(false);
-                uvcStream.stopPublish();
+                Schedulers.newThread().scheduleDirect(new Runnable() {
+                    @Override
+                    public void run() {
+                        uvcStream.stopPublish();
+                    }
+                });
                 break;
         }
     }

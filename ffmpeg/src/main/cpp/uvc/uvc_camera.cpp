@@ -72,6 +72,7 @@ int UvcCamera::initCamera(int width, int height, int bufnum) {
             return -1;
         }
         buffers[i].length = v4l2_buf.length;
+        //映射内存
         if (MAP_FAILED == (buffers[i].start = (unsigned char *) mmap(0, v4l2_buf.length,
                                                                      PROT_READ | PROT_WRITE,
                                                                      MAP_SHARED,
@@ -80,13 +81,6 @@ int UvcCamera::initCamera(int width, int height, int bufnum) {
             LOGE("%d : mmap() failed", __LINE__);
             return -1;
         }
-        //映射内存
-//        buffers[i].start = mmap(NULL, v4l2_buf.length, PROT_READ | PROT_WRITE, MAP_SHARED,
-//                                cameraId, v4l2_buf.m.offset);
-//        if (MAP_FAILED == buffers[i].start) {
-//            LOGE("%d : mmap() failed", __LINE__);
-//            return -1;
-//        }
         // 把所需缓冲帧放入队列
         ret = ioctl(cameraId, VIDIOC_QBUF, &v4l2_buf);
         if (ret < 0) {
@@ -105,18 +99,6 @@ bool UvcCamera::InitSuccess() {
 int UvcCamera::streamOn() {
     int ret;
     // 把所需缓冲帧放入队列，并启动数据流
-//    for (int i = 0; i < bufnum; ++i) {
-//        memset(&v4l2_buf, 0, sizeof(v4l2_buf));
-//        v4l2_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-//        v4l2_buf.memory = V4L2_MEMORY_MMAP;
-//        v4l2_buf.index = i;
-//        ret = ioctl(cameraId, VIDIOC_QBUF, &v4l2_buf);
-//        if (ret < 0) {
-//            LOGE("%d : VIDIOC_QBUF failed\n", __LINE__);
-//            return ret;
-//        }
-//    }
-
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     ret = ioctl(cameraId, VIDIOC_STREAMON, &type);
     if (ret < 0) {
@@ -166,14 +148,7 @@ int UvcCamera::streamOff() {
 }
 
 int UvcCamera::releaseCamera() {
-//    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     int ret;
-//    ret = ioctl(cameraId, VIDIOC_STREAMOFF, &type);
-//    if (ret < 0) {
-//        LOGE("%s : VIDIOC_STREAMOFF failed\n", __func__);
-//        return ret;
-//    }
-
     for (int i = 0; i < bufnum; i++) {
         // 断开映射
         ret = munmap(buffers[i].start, buffers[i].length);

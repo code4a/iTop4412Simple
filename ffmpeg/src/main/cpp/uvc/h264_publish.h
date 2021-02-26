@@ -58,6 +58,8 @@ public:
 
     void EncodeBuffer(unsigned char *nv21Buffer);
 
+    uint8_t *GetYuvBuf();
+
     void ToYuv420p();
 
     void StopPublish();

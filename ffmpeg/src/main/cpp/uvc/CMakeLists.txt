@@ -1,9 +1,9 @@
 
-file(GLOB uvc_files *.cpp)
+file(GLOB project_files *.cpp)
 
 add_library(ffmpeg_uvc_stream
         SHARED
-        ${uvc_files})
+        ${project_files})
 
 # 获取module根目录
 set(YUV_ROOT_DIR ${CMAKE_SOURCE_DIR}/../../../../libyuv)

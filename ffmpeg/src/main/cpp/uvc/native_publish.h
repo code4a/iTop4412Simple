@@ -15,7 +15,15 @@ extern "C" {
 #include "libswscale/swscale.h"
 
 /*
- * Class:     com_jiangyt_library_ffmpeg_FFmpegStream
+* Class:     com_jiangyt_library_ffmpeg_FFMpegUvcStream
+* Method:    setCallback
+* Signature: (Lcom/jinmao/cloud/app/ffmpeg/FrameCallback;)I
+*/
+JNIEXPORT jint JNICALL setCallback
+        (JNIEnv *, jobject, jobject);
+
+/*
+ * Class:     com_jiangyt_library_ffmpeg_FFmpegUvcStream
  * Method:    captureFrame
  * Signature: ()V
  */
