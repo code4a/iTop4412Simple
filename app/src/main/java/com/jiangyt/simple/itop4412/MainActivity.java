@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.btn_rtmp).setOnClickListener(this);
         findViewById(R.id.btn_player).setOnClickListener(this);
         findViewById(R.id.btn_stream).setOnClickListener(this);
+        findViewById(R.id.btn_uvc_stream).setOnClickListener(this);
     }
 
     @Override
@@ -85,6 +86,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btn_stream:
                 openActivity(FFmpegStreamActivity.class);
+                break;
+            case R.id.btn_uvc_stream:
+                openActivity(FFmpegUvcStreamActivity.class);
                 break;
         }
     }

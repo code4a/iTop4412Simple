@@ -1,0 +1,20 @@
+### YUV采样格式：
+
+1. YUV 4:4:4 采样 每个像素点 三分量 采样相同
+
+2. YUV 4:2:2 采样 每个像素点 UV分量是Y分量一半 采样码流：y0 u0 y1 v1 y2 u2 y3 v3
+                                  映射像素点: [y0 u0 v1] [y1 u0 v1] [y2 u2 v3] [y3 u2 v3]
+             YUYV属于422打包格式的采样，Y和UV分量按照2：1采样
+             UYVY
+             YUV422P 是planer模式
+3. YUV 4:2:0 采样 每个像素点 4个Y分量公用一组UV分量
+            YUV420P 是planer模式 yyyy yyyy u u v v
+                YU12 YV12
+            YUV420SP 是planer模式 yyyy yyyy u v u v
+                NV12是 IOS 中有的模式，它的存储顺序是先存 Y 分量，再 UV 交替存储
+                NV21是 安卓 中有的模式，它的存储顺序是先存 Y 分量，在 VU 交替存储。
+### YUV存储格式
+
+1. 平面格式(planar format)：分别连续存储YUV分量 YYY UUU VVV
+2. 打包格式(packed format)：每个像素点YUV是连续交错存储 YUV YUV
+
