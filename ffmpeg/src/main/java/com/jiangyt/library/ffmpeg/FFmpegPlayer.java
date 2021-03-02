@@ -17,7 +17,7 @@ import android.view.SurfaceView;
  */
 public class FFmpegPlayer implements SurfaceHolder.Callback {
 
-    private static final String PUBLISH_ADDRESS = "rtmp://10.58.238.36:8935/stream/mp4live";
+    private static final String PUBLISH_ADDRESS = "rtmp://10.58.238.154:8935/stream/mp4live";
 
     static {
         System.loadLibrary("ffmpeg_player");

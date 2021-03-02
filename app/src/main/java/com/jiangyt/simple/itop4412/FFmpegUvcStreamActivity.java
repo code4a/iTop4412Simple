@@ -51,9 +51,12 @@ public class FFmpegUvcStreamActivity extends AppCompatActivity implements View.O
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        bitmap.copyPixelsFromBuffer(Imagbuf);
-                        mImag.setImageBitmap(bitmap);
-                        Imagbuf.clear();
+                        if (rgbBuf != null && rgbBuf.length > 0) {
+                            System.arraycopy(rgbBuf, 0, mout, 0, rgbBuf.length);
+                            bitmap.copyPixelsFromBuffer(Imagbuf);
+                            mImag.setImageBitmap(bitmap);
+                            Imagbuf.clear();
+                        }
                     }
                 });
             }
@@ -69,7 +72,7 @@ public class FFmpegUvcStreamActivity extends AppCompatActivity implements View.O
                 Schedulers.newThread().scheduleDirect(new Runnable() {
                     @Override
                     public void run() {
-                        uvcStream.startPublish("rtmp://10.58.238.36:9935/live/live_camera", 240, 480);
+                        uvcStream.startPublish("rtmp://10.58.238.154:9935/live/live_camera", 240, 480);
                         uvcStream.captureFrame();
                     }
                 });

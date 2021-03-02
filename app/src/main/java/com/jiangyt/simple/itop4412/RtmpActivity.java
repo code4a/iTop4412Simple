@@ -39,7 +39,7 @@ public class RtmpActivity extends AppCompatActivity implements View.OnClickListe
     private Camera camera;
     boolean isPreview = false; //是否在预览中
     private String dir = "LiveRtmp";
-    private String rtmpUrl = "rtmp://10.58.238.36:8935/stream/live_camera";
+    private String rtmpUrl = "rtmp://10.58.238.154:8935/stream/live_camera";
     // 采集到每帧数据时间
     long previewTime = 0;
     // 开始编码时间

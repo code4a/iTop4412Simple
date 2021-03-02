@@ -19,8 +19,7 @@ extern "C" {
 * Method:    setCallback
 * Signature: (Lcom/jinmao/cloud/app/ffmpeg/FrameCallback;)I
 */
-JNIEXPORT jint JNICALL setCallback
-        (JNIEnv *, jobject, jobject);
+JNIEXPORT jint JNICALL setCallback(JNIEnv *, jobject, jobject);
 
 /*
  * Class:     com_jiangyt_library_ffmpeg_FFmpegUvcStream

@@ -6,6 +6,7 @@
 #define ITOP4412SIMPLE_VIDEO_PUBLISH_H
 
 #include <cstdint>
+#include "callback.h"
 
 class VideoPublisher {
 
@@ -21,9 +22,7 @@ public:
 
     virtual void EncodeBuffer(unsigned char *nv21Buffer) = 0;
 
-    virtual uint8_t *GetYuvBuf() = 0;
-
-    virtual void ToYuv420p() = 0;
+    virtual void ToYuv420p(FrameCallback *fCb) = 0;
 
     virtual void StopPublish() = 0;
 

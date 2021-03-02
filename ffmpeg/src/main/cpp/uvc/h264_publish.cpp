@@ -182,18 +182,14 @@ int H264Publisher::InitYuyv422(int width, int height) {
     return 0;
 }
 
-uint8_t *H264Publisher::GetYuvBuf() {
-    return yuyv422buf;
-}
-
-void H264Publisher::ToYuv420p() {
+void H264Publisher::ToYuv420p(FrameCallback *fCb) {
     /**
     * 准备图像数据
     * YUV422占用内存空间 = w * h * 2
     * YUV420占用内存空间 = width*height*3/2
     */
     int fi = this->uvcCamera->dqbuf(yuyv422buf);
-
+    fCb->frameCall(yuyv422buf);
     // 方法1
 //    sws_scale(sws_ctx, (const uint8_t *const *) yuyv422frame->data, yuyv422frame->linesize, 0,
 //              height,

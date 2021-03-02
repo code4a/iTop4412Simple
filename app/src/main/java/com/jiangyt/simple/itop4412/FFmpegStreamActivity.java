@@ -70,7 +70,7 @@ public class FFmpegStreamActivity extends AppCompatActivity implements View.OnCl
             case R.id.btn_encode_mp4_start:
                 mBtnEncodeStartMP4.setEnabled(false);
                 mBtnEncodeStopMP4.setEnabled(true);
-                mCameraV1.encodeStart("rtmp://10.58.238.36:9935/live/live_camera");
+                mCameraV1.encodeStart("rtmp://10.58.238.154:9935/live/live_camera");
                 break;
             case R.id.btn_encode_mp4_stop:
                 mBtnEncodeStartMP4.setEnabled(true);

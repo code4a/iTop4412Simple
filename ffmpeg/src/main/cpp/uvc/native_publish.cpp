@@ -7,6 +7,7 @@
 #include "h264_publish.h"
 #include "ffmpeg_convert.h"
 #include "logger.h"
+#include "callback.h"
 
 /**
  * 动态注册
@@ -75,6 +76,17 @@ int callback(JNIEnv *env, uint8_t *rgbBuf, uint8_t *yuvBuf) {
     return 0;
 }
 
+void FrameCallback::initJni(JNIEnv *env) {
+    this->env = env;
+}
+
+void FrameCallback::frameCall(uint8_t *yuvData) {
+    LOGE("callback yuv data size : %d", (int)sizeof(yuvData));
+    int ret = callback(env, fmpegConvert->YUV2RGB(yuvData),
+                       fmpegConvert->YUYV2YUV420(yuvData));
+    LOGE("callback ret : %d", ret);
+}
+
 int setCallback(JNIEnv *env, jobject instance, jobject frameCp) {
     // 转换为全局变量
     frameCallback = env->NewGlobalRef(frameCp);
@@ -138,13 +150,11 @@ void stopPublish(JNIEnv *env, jobject obj) {
  * @param obj
  */
 void captureFrame(JNIEnv *env, jobject obj) {
+    FrameCallback *fCb = new FrameCallback();
+    fCb->initJni(env);
     while (NULL != videoPublisher && videoPublisher->isTransform()) {
         if (videoPublisher->InitUvcSuccess()) {
-            videoPublisher->ToYuv420p();
-            uint8_t *yuvData = videoPublisher->GetYuvBuf();
-            int ret = callback(env, fmpegConvert->YUV2RGB(yuvData),
-                               fmpegConvert->YUYV2YUV420(yuvData));
-            LOGE("callback ret : %d", ret);
+            videoPublisher->ToYuv420p(fCb);
         } else {
             videoPublisher->EncodeBuffer(NULL);
         }

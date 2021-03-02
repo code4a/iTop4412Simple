@@ -29,6 +29,8 @@ uint8_t *FFmpegConvert::smartConvert(uint8_t *srcBuf, enum AVPixelFormat src_pix
                          dst_pix_fmt, width, height, 1);
     sws_ctx = sws_getContext(width, height, src_pix_fmt, width, height,
                              src_pix_fmt, SWS_BICUBIC, NULL, NULL, NULL);
+    sws_scale(sws_ctx, (const uint8_t *const *) srcFrame->data, srcFrame->linesize, 0, height,
+              dstFrame->data, dstFrame->linesize);
     sws_freeContext(sws_ctx);
     av_free(srcFrame);
     av_free(dstFrame);
